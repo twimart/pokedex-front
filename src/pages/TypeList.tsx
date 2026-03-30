@@ -3,11 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { getAllTypes, deleteType } from '../api/typeApi'
 import ConfirmDialog from '../components/ConfirmDialog'
+import keycloak from '../auth/keycloak'
 
 export default function TypeList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [deleteId, setDeleteId] = useState<number | null>(null)
+  const isConnected = keycloak.authenticated === true
 
   const { data: types, isLoading } = useQuery({
     queryKey: ['types'],
@@ -37,9 +39,11 @@ export default function TypeList() {
           <p>Gère les familles et leurs couleurs iconiques.</p>
         </div>
         <div className="page-actions">
-          <button onClick={() => navigate('/types/new')} className="button button--primary">
-          + Ajouter un Type
-          </button>
+          {isConnected && (
+            <button onClick={() => navigate('/types/new')} className="button button--primary">
+              + Ajouter un Type
+            </button>
+          )}
         </div>
       </div>
 
@@ -63,12 +67,16 @@ export default function TypeList() {
                 </td>
                 <td style={{ fontWeight: 800 }}>{type.name}</td>
                 <td>
-                  <button onClick={() => navigate(`/types/${type.id}/edit`)} className="button button--primary" style={{ marginRight: '0.5rem' }}>
-                    Éditer
-                  </button>
-                  <button onClick={() => setDeleteId(type.id)} className="button button--danger">
-                    Supprimer
-                  </button>
+                  {isConnected && (
+                    <>
+                      <button onClick={() => navigate(`/types/${type.id}/edit`)} className="button button--primary" style={{ marginRight: '0.5rem' }}>
+                        Éditer
+                      </button>
+                      <button onClick={() => setDeleteId(type.id)} className="button button--danger">
+                        Supprimer
+                      </button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}

@@ -3,12 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createType, updateType, getTypeById } from '../api/typeApi'
 import type { TypeCreate } from '../types/models'
+import keycloak from '../auth/keycloak'
 
 export default function TypeForm() {
   const { id } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const isEdit = Boolean(id)
+  const isConnected = keycloak.authenticated === true
 
   const { data: existingType } = useQuery({
     queryKey: ['type', id],
@@ -61,6 +63,7 @@ export default function TypeForm() {
 
   return (
     <div className="form-layout">
+      {!isConnected && <div className="empty-state">Connexion requise pour modifier les données.</div>}
       <div className="page-header">
         <div>
           <h1>{isEdit ? 'Modifier' : 'Créer'} un Type</h1>

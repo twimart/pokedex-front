@@ -3,10 +3,12 @@ import { useQuery } from '@tanstack/react-query'
 import { getPokemonById } from '../api/pokemonApi'
 import TypeBadge from '../components/TypeBadge'
 import StatBar from '../components/StatBar'
+import keycloak from '../auth/keycloak'
 
 export default function PokemonDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const isConnected = keycloak.authenticated === true
   const { data: pokemon, isLoading } = useQuery({
     queryKey: ['pokemon', id],
     queryFn: () => getPokemonById(Number(id))
@@ -47,11 +49,13 @@ export default function PokemonDetail() {
             <StatBar label="Défense" value={pokemon.defense} color="#FAE078" />
           </div>
 
-          <div className="form-grid__actions" style={{ marginTop: '0.5rem' }}>
-            <button onClick={() => navigate(`/pokemons/${pokemon.id}/edit`)} className="button button--primary">
-              Modifier
-            </button>
-          </div>
+          {isConnected && (
+            <div className="form-grid__actions" style={{ marginTop: '0.5rem' }}>
+              <button onClick={() => navigate(`/pokemons/${pokemon.id}/edit`)} className="button button--primary">
+                Modifier
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

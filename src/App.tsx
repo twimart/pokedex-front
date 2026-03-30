@@ -7,6 +7,7 @@ import PokemonDetail from './pages/PokemonDetail'
 import PokemonForm from './pages/PokemonForm'
 import TypeList from './pages/TypeList'
 import TypeForm from './pages/TypeForm'
+import PrivateRoute from './auth/PrivateRoute'
 
 const queryClient = new QueryClient()
 
@@ -15,11 +16,20 @@ function App() {
     const savedTheme = window.localStorage.getItem('pokedex-theme')
     return savedTheme === 'dark' ? 'dark' : 'light'
   })
+  const [, forceAuthRefresh] = useState(0)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     window.localStorage.setItem('pokedex-theme', theme)
   }, [theme])
+
+  useEffect(() => {
+    const syncAuth = () => forceAuthRefresh(value => value + 1)
+    syncAuth()
+    const interval = window.setInterval(syncAuth, 500)
+
+    return () => window.clearInterval(interval)
+  }, [])
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -30,12 +40,12 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/pokemons" />} />
               <Route path="/pokemons" element={<PokemonList />} />
-              <Route path="/pokemons/new" element={<PokemonForm />} />
+              <Route path="/pokemons/new" element={<PrivateRoute><PokemonForm /></PrivateRoute>} />
               <Route path="/pokemons/:id" element={<PokemonDetail />} />
-              <Route path="/pokemons/:id/edit" element={<PokemonForm />} />
+              <Route path="/pokemons/:id/edit" element={<PrivateRoute><PokemonForm /></PrivateRoute>} />
               <Route path="/types" element={<TypeList />} />
-              <Route path="/types/new" element={<TypeForm />} />
-              <Route path="/types/:id/edit" element={<TypeForm />} />
+              <Route path="/types/new" element={<PrivateRoute><TypeForm /></PrivateRoute>} />
+              <Route path="/types/:id/edit" element={<PrivateRoute><TypeForm /></PrivateRoute>} />
             </Routes>
           </div>
         </div>

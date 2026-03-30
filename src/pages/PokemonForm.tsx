@@ -4,12 +4,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createPokemon, updatePokemon, getPokemonById } from '../api/pokemonApi'
 import { getAllTypes } from '../api/typeApi'
 import type { PokemonCreate } from '../types/models'
+import keycloak from '../auth/keycloak'
 
 export default function PokemonForm() {
   const { id } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const isEdit = Boolean(id)
+  const isConnected = keycloak.authenticated === true
 
   const { data: types } = useQuery({
     queryKey: ['types'],
@@ -79,6 +81,7 @@ export default function PokemonForm() {
 
   return (
     <div className="form-layout">
+      {!isConnected && <div className="empty-state">Connexion requise pour modifier les données.</div>}
       <div className="page-header">
         <div>
           <h1>{isEdit ? 'Modifier' : 'Créer'} un Pokémon</h1>

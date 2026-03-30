@@ -8,12 +8,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import TypeBadge from '../components/TypeBadge'
 import StatBar from '../components/StatBar'
 import ConfirmDialog from '../components/ConfirmDialog'
+import keycloak from '../auth/keycloak'
 
 export default function PokemonList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [typeFilter, setTypeFilter] = useState<number | undefined>(undefined)
   const [deleteId, setDeleteId] = useState<number | null>(null)
+  const isConnected = keycloak.authenticated === true
 
   const { data: types } = useQuery({
     queryKey: ['types'],
@@ -53,9 +55,11 @@ export default function PokemonList() {
               <option key={type.id} value={type.id}>{type.name}</option>
             ))}
           </select>
-          <button onClick={() => navigate('/pokemons/new')} className="button button--primary">
-            + Ajouter
-          </button>
+          {isConnected && (
+            <button onClick={() => navigate('/pokemons/new')} className="button button--primary">
+              + Ajouter
+            </button>
+          )}
         </div>
       </div>
 
@@ -90,14 +94,16 @@ export default function PokemonList() {
               <StatBar label="ATK" value={pokemon.attack} color="#F5AC78" />
               <StatBar label="DEF" value={pokemon.defense} color="#FAE078" />
             </div>
-            <div className="card-actions" onClick={e => e.stopPropagation()}>
-              <button onClick={() => navigate(`/pokemons/${pokemon.id}/edit`)} className="button button--primary">
-                Éditer
-              </button>
-              <button onClick={() => setDeleteId(pokemon.id)} className="button button--danger">
-                Supprimer
-              </button>
-            </div>
+              {isConnected && (
+                <div className="card-actions" onClick={e => e.stopPropagation()}>
+                  <button onClick={() => navigate(`/pokemons/${pokemon.id}/edit`)} className="button button--primary">
+                    Éditer
+                  </button>
+                  <button onClick={() => setDeleteId(pokemon.id)} className="button button--danger">
+                    Supprimer
+                  </button>
+                </div>
+              )}
           </div>
         ))}
       </div>

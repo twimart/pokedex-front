@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from './axiosInstance'
 import type { Type, TypeCreate } from '../types/models'
 
 const BASE = import.meta.env.VITE_API_URL
