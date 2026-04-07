@@ -7,23 +7,27 @@ import type { PokemonCreate } from '../types/models'
 import keycloak from '../auth/keycloak'
 
 export default function PokemonForm() {
+  // La présence d'un id dans l'URL détermine si l'on est en mode création ou édition.
   const { id } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const isEdit = Boolean(id)
   const isConnected = keycloak.authenticated === true
 
+  // La liste des types alimente le champ select de classification.
   const { data: types } = useQuery({
     queryKey: ['types'],
     queryFn: getAllTypes
   })
 
+  // En édition, on charge le Pokémon ciblé pour pré-remplir le formulaire.
   const { data: existingPokemon } = useQuery({
     queryKey: ['pokemon', id],
     queryFn: () => getPokemonById(Number(id)),
     enabled: isEdit
   })
 
+  // Chaque champ du formulaire est contrôlé par React pour garder la source de vérité dans le state.
   const [formData, setFormData] = useState<PokemonCreate>({
     pokedexNumber: 0,
     name: '',
@@ -38,6 +42,7 @@ export default function PokemonForm() {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
+    // En mode édition, on pré-remplit le formulaire avec les données existantes du Pokémon.
     if (existingPokemon) {
       setFormData({
         pokedexNumber: existingPokemon.pokedexNumber,
@@ -53,7 +58,9 @@ export default function PokemonForm() {
   }, [existingPokemon])
 
   const validate = (): boolean => {
+    // Validation locale minimale avant d'envoyer la requête au backend.
     const newErrors: Record<string, string> = {}
+    // Chaque règle évite une saisie vide ou incohérente avant le round-trip serveur.
     if (!formData.name.trim()) newErrors.name = 'Le nom est requis'
     if (formData.pokedexNumber < 1) newErrors.pokedexNumber = 'Le numéro doit être >= 1'
     if (formData.typeId < 1) newErrors.typeId = 'Le type est requis'
@@ -67,6 +74,7 @@ export default function PokemonForm() {
   const mutation = useMutation({
     mutationFn: (data: PokemonCreate) => isEdit ? updatePokemon(Number(id), data) : createPokemon(data),
     onSuccess: () => {
+      // On force le rechargement de la liste pour afficher immédiatement le résultat.
       queryClient.invalidateQueries({ queryKey: ['pokemons'] })
       navigate('/pokemons')
     }
@@ -75,21 +83,25 @@ export default function PokemonForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (validate()) {
+      // On n'envoie la mutation qu'une fois les champs jugés valides côté client.
       mutation.mutate(formData)
     }
   }
 
   return (
     <div className="form-layout">
+      {/* Le formulaire reste visible, mais on signale que l'écriture nécessite une session authentifiée. */}
       {!isConnected && <div className="empty-state">Connexion requise pour modifier les données.</div>}
       <div className="page-header">
         <div>
+          {/* Le titre change selon l'action pour rappeler le contexte de l'écran. */}
           <h1>{isEdit ? 'Modifier' : 'Créer'} un Pokémon</h1>
           <p>Remplis les stats et associe un type à ton Pokémon.</p>
         </div>
       </div>
       <form onSubmit={handleSubmit} className="form-grid">
         <div className="form-field">
+          {/* Le numéro Pokédex sert d'identifiant métier lisible côté interface. */}
           <input
             type="number"
             placeholder="Numéro Pokédex *"
@@ -102,6 +114,7 @@ export default function PokemonForm() {
         </div>
 
         <div className="form-field">
+          {/* Le nom est obligatoire pour identifier clairement la créature. */}
           <input
             type="text"
             placeholder="Nom *"
@@ -114,6 +127,7 @@ export default function PokemonForm() {
         </div>
 
         <div className="form-field">
+          {/* Le type est stocké sous forme d'ID, puis résolu côté API en objet Type. */}
           <select
             value={formData.typeId || ''}
             onChange={e => setFormData({ ...formData, typeId: Number(e.target.value) })}
@@ -130,6 +144,7 @@ export default function PokemonForm() {
 
         <div className="form-grid form-grid--three">
           <div className="form-field">
+            {/* Les trois statistiques principales sont regroupées pour gagner de la place. */}
             <input
               type="number"
               placeholder="HP * (>= 1)"
@@ -169,9 +184,11 @@ export default function PokemonForm() {
         <textarea placeholder="Description" value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} className="field" />
 
         <div className="form-grid__actions">
+          {/* Le bouton principal lance la sauvegarde; il se désactive pendant l'appel réseau. */}
           <button type="submit" disabled={mutation.isPending} className="button button--primary">
             {mutation.isPending ? 'Enregistrement...' : (isEdit ? 'Modifier' : 'Créer')}
           </button>
+          {/* Le second bouton ramène sans rien enregistrer. */}
           <button type="button" onClick={() => navigate('/pokemons')} className="button button--ghost">
             Annuler
           </button>

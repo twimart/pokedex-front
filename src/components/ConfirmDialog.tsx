@@ -9,11 +9,13 @@ interface ConfirmDialogProps {
   children?: ReactNode
 }
 
+// Boîte de dialogue réutilisable pour confirmer une action destructive.
 export default function ConfirmDialog({ open, title, message, onConfirm, onCancel, children }: ConfirmDialogProps) {
   if (!open) return null
 
   return (
     <div
+      // Le backdrop couvre tout l'écran et ferme la modale au clic.
       style={{
         position: 'fixed',
         top: 0,
@@ -30,6 +32,7 @@ export default function ConfirmDialog({ open, title, message, onConfirm, onCance
     >
       <div
         className="confirm-dialog"
+        // On bloque la propagation pour ne pas fermer la modale au clic interne.
         onClick={e => e.stopPropagation()}
       >
         <h3>{title}</h3>

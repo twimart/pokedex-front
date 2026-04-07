@@ -5,7 +5,9 @@ interface StatBarProps {
   max?: number;
 }
 
+// Barre visuelle simple pour comparer une statistique à une valeur maximale.
 export default function StatBar({ label, value, color, max = 150 }: StatBarProps) {
+  // La largeur est plafonnée à 100% pour éviter un débordement visuel.
   const percentage = Math.min((value / max) * 100, 100)
 
   return (

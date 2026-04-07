@@ -2,9 +2,11 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
+    <!-- Page technique utilisée par Keycloak pour vérifier la session sans redirection visible. -->
     <title>Silent SSO</title>
   </head>
   <body>
+    <!-- Le script renvoie l'URL au parent pour finaliser le check SSO silencieux. -->
     <script>
       parent.postMessage(location.href, location.origin)
     </script>
